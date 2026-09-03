@@ -1,41 +1,48 @@
 #!/usr/bin/env python3
+import argparse
 import sys
 
-def usage():
-    return "Usage: marks.py <mark1> <mark2> <mark3>\nEach mark must be a number between 0 and 100."
+def parse_args():
+    p = argparse.ArgumentParser(description="Calculate total and average for 3 subjects")
+    p.add_argument("m1", type=float, help="Marks for subject 1")
+    p.add_argument("m2", type=float, help="Marks for subject 2")
+    p.add_argument("m3", type=float, help="Marks for subject 3")
+    p.add_argument("-t", "--threshold", type=float, default=120.0, help="Pass threshold for total (default: 120)")
+    p.add_argument("-p", "--precision", type=int, default=2, help="Decimal places for average (default: 2)")
+    return p.parse_args()
 
-def parse_mark(s):
-    try:
-        m = float(s)
-    except ValueError:
-        print("Error: marks must be numbers", file=sys.stderr)
-        sys.exit(2)
-    if m < 0 or m > 100:
-        print("Error: each mark must be between 0 and 100", file=sys.stderr)
-        sys.exit(2)
-    return m
+def validate_mark(name, v):
+    if v < 0:
+        raise ValueError(f"{name} must be non-negative")
+    return v
 
 def main():
-    if len(sys.argv) != 4:
-        print(usage(), file=sys.stderr)
+    args = parse_args()
+    try:
+        m1 = validate_mark("m1", args.m1)
+        m2 = validate_mark("m2", args.m2)
+        m3 = validate_mark("m3", args.m3)
+    except ValueError as e:
+        print("Input error:", e, file=sys.stderr)
         sys.exit(2)
 
-    m1 = parse_mark(sys.argv[1])
-    m2 = parse_mark(sys.argv[2])
-    m3 = parse_mark(sys.argv[3])
-
     total = m1 + m2 + m3
-    average = total / 3.0
+    avg = total / 3.0
 
-    passed = all(m >= 40.0 for m in (m1, m2, m3))
-    status = "PASS" if passed else "FAIL"
+    # print results
+    print(f"Marks: {m1}, {m2}, {m3}")
+    # show total as integer if it's an integer
+    if abs(total - round(total)) < 1e-12:
+        print(f"Total: {int(round(total))}")
+    else:
+        print(f"Total: {total}")
 
-    print(f"Marks: {m1:.2f}, {m2:.2f}, {m3:.2f}")
-    print(f"Total: {total:.2f}")
-    print(f"Average: {average:.2f}")
-    print(status)
+    print(f"Average: {avg:.{args.precision}f}")
 
-    sys.exit(0 if passed else 1)
+    if total > args.threshold:
+        print("Result: Pass")
+    else:
+        print("Result: Fail")
 
 if __name__ == "__main__":
     main()
