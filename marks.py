@@ -38,5 +38,4 @@ def main():
     sys.exit(0 if passed else 1)
 
 if __name__ == "__main__":
-    import sys
     main()
